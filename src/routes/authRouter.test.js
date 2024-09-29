@@ -14,6 +14,11 @@ beforeAll(async () => {
   testUserAuthToken = registerRes.body.token;
 });
 
+test('test user creation failure', async () => {
+  const loginRes = await request(app).post('/api/auth').send({ email: 'dad@gmail.com', password: 'password' });
+  expect(loginRes.status).toBe(400);
+});
+
 test('login test user', async () => {
   const loginRes = await request(app).put('/api/auth').send(testUser);
   expect(loginRes.status).toBe(200);
@@ -33,5 +38,6 @@ test('logout test user without token', async () => {
   const logoutRes = await request(app).delete('/api/auth').set('Authorization', `Bearer wrongtoken`);
   expect(logoutRes.status).toBe(401)
 });
+
 
 
