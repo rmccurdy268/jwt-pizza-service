@@ -1,8 +1,9 @@
 const request = require('supertest');
 const app = require('../service');
 
-const { Role, DB } = require('../database/database.js');
 let admin, adminToken, testUser, testUsertoken;
+const { Role, DB } = require('../database/database.js');
+
 
 async function createTestUser() {
   let user = { password: 'testerPassword', roles: [{ role: Role.Diner }] }
@@ -40,16 +41,18 @@ async function login(user){
 
 beforeAll(async () => {
   admin = await createAdminUser();
-  testUser = await createAdminUser();
+  testUser = await createTestUser();
   adminToken = await login(admin);
   testUsertoken = await login(testUser);
 
 });
+
 test("create franchise test", async () =>{
   expect(true).toBeTruthy()
   const createRes = await request(app).post('/api/franchise/').set('Authorization', `Bearer ${adminToken}`).send({"name": "otherpizzapocket", "admins": [{"email": admin.email}]})
   expect(createRes.status).toBe(200);
 });
+
 
 
 
