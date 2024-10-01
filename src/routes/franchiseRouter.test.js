@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../service');
 
-let admin, adminToken, testUser, testUserToken, adminId;
+let admin, adminToken, testUser, testUserToken, adminId, franchiseToDeleteId, storeToDeleteId;
 const { Role, DB } = require('../database/database.js');
 
 
@@ -50,6 +50,7 @@ test("create franchise test", async () =>{
   const createRes = await request(app).post('/api/franchise/').set('Authorization', `Bearer ${adminToken}`).send({"name": "otherpizzapocket", "admins": [{"email": admin.email}]})
   expect(createRes.status).toBe(200);
   expect(createRes.body.name).toBe("otherpizzapocket");
+  franchiseToDeleteId = createRes.body.id;
   const logout = await request(app).delete('/api/auth').set('Authorization', `Bearer ${adminToken}`);
   expect(logout.body.message).toBe("logout successful");
 });
@@ -80,7 +81,26 @@ test("get user franchises", async () =>{
   expect(franchisesRes.body[0].name).toBe('otherpizzapocket');
 });
 
+test("create store test", async () =>{
+  const createRes = await request(app).post(`/api/franchise/${franchiseToDeleteId}/store`).set('Authorization', `Bearer ${adminToken}`).send({"franchiseId": franchiseToDeleteId, "name": "SLC"})
+  expect(createRes.status).toBe(200);
+  expect(createRes.body.name).toBe("SLC");
+  storeToDeleteId = createRes.body.id;
+});
 
+test("delete store", async () =>{
+  const deleteFranchiseRes = await request(app).delete(`/api/franchise/${franchiseToDeleteId}/store/${storeToDeleteId}`).set('Authorization', `Bearer ${adminToken}`);
+  expect(deleteFranchiseRes.status).toBe(200);
+  expect(deleteFranchiseRes.body.message).toBe('store deleted'); 
+});
+
+test("delete franchise", async () =>{
+  const deleteFranchiseRes = await request(app).delete(`/api/franchise/${franchiseToDeleteId}`).set('Authorization', `Bearer ${adminToken}`);
+  expect(deleteFranchiseRes.status).toBe(200);
+  expect(deleteFranchiseRes.body.message).toBe('franchise deleted');
+  const logout = await request(app).delete('/api/auth').set('Authorization', `Bearer ${adminToken}`);
+  expect(logout.body.message).toBe("logout successful"); 
+});
 
 afterAll(async () => {
   const connection = await DB.getConnection();
