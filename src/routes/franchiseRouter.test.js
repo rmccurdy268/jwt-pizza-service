@@ -30,12 +30,11 @@ async function login(user){
   let loginRes;
   try{
     loginRes = await request(app).put('/api/auth').send({name: user.name, email: user.email, password: user.password});
+    return loginRes;
   }
   catch (error){
-    console.log("login didnt work");
-  }
-  finally{
-    return loginRes
+    console.log(error);
+    throw new Error("login didnt work");
   }
 }
 
@@ -45,7 +44,7 @@ beforeAll(async () => {
 });
 
 test("create franchise test", async () =>{
-  loginRes = await login(admin);
+  const loginRes = await login(admin);
   adminToken = loginRes.body.token;
   const createRes = await request(app).post('/api/franchise/').set('Authorization', `Bearer ${adminToken}`).send({"name": "otherpizzapocket", "admins": [{"email": admin.email}]})
   expect(createRes.status).toBe(200);
@@ -73,7 +72,7 @@ test("get franchises", async () =>{
 });
 
 test("get user franchises", async () =>{
-  loginRes = await login(admin);
+  const loginRes = await login(admin);
   adminToken = loginRes.body.token;
   adminId = loginRes.body.user.id;
   const franchisesRes = await request(app).get(`/api/franchise/${adminId}`).set('Authorization', `Bearer ${adminToken}`);

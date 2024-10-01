@@ -60,7 +60,7 @@ test('logout test user', async () => {
 });
 
 test('update test user', async () =>{
-  adminRes = await request(app).put('/api/auth').send({name: testAdmin.name, email: testAdmin.email, password: testAdmin.password});
+  const adminRes = await request(app).put('/api/auth').send({name: testAdmin.name, email: testAdmin.email, password: testAdmin.password});
   expect(adminRes.status).toBe(200);
   adminAuth = adminRes.body.token;
   const updateRes = await request(app).put(`/api/auth/${testUserId}`).set('Authorization', `Bearer ${adminAuth}`).send({"email": testAdmin.email, "password": testAdmin.password})
