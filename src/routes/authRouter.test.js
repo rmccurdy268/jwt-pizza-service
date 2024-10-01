@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../service');
+const { Role, DB } = require('../database/database.js');
 
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 let testUserAuthToken;
@@ -39,5 +40,15 @@ test('logout test user without token', async () => {
   expect(logoutRes.status).toBe(401)
 });
 
+afterAll(async () => {
+  const connection = await DB.getConnection();
+  try{
+    await DB.query(connection, "DROP DATABASE testpizza");
+    console.log("Destroying database")
+  }
+  finally{
+    connection.end();
+  }
+});
 
 
