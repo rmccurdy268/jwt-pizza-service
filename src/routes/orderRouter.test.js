@@ -39,6 +39,10 @@ async function login(user){
 beforeAll(async () => {
     admin = await createAdminUser();
     testUser = await createTestUser();
+    const loginRes = await login(admin);
+    const menuItem = {"title":"Onion bagel", "description": "Onion powder. Onion shavings. Diced onion. On an onion bagel.", "image":"pizza9.png", "price": 0.0010 }
+    await request(app).put('/api/order/menu').set('Authorization', `Bearer ${loginRes.body.token}`).send(menuItem);
+    await logout(loginRes.body.token)
 });
 
 test("get pizza menu", async () =>{
