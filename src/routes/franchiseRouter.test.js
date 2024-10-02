@@ -97,21 +97,50 @@ test("create store test", async () =>{
   const createFranchiseRes = await request(app).post('/api/franchise/').set('Authorization', `Bearer ${loginRes.body.token}`).send({"name": `${franchiseName}`, "admins": [{"email": admin.email}]})
   expect(createFranchiseRes.status).toBe(200);
   const storeName = randomFranchiseName()
-  const createStoreRes = await request(app).post(`/api/franchise/${createFranchiseRes.body.id}/store`).set('Authorization', `Bearer ${adminToken}`).send({"franchiseId": createFranchiseRes.body.id, "name": storeName});
+  const createStoreRes = await request(app).post(`/api/franchise/${createFranchiseRes.body.id}/store`).set('Authorization', `Bearer ${loginRes.body.token}`).send({"franchiseId": createFranchiseRes.body.id, "name": storeName});
   expect(createStoreRes.status).toBe(200);
   expect(createStoreRes.body.name).toBe(storeName);
   storeToDeleteId = createStoreRes.body.id;
   franchiseToDeleteId = createFranchiseRes.body.id;
+  expect(await logout(adminToken)).toBe("logout successful")
+});
+
+test("create store not authorized", async () =>{
+  const loginRes = await login(testUser);
+  const storeName = randomFranchiseName();
+  const createStoreRes = await request(app).post(`/api/franchise/${franchiseToDeleteId}/store`).set('Authorization', `Bearer ${loginRes.body.token}`).send({"franchiseId": franchiseToDeleteId, "name": storeName});
+  expect(createStoreRes.status).toBe(403);
+  expect(createStoreRes.body.message).toBe("unable to create a store");
+  expect(await logout(loginRes.body.token)).toBe("logout successful")
+});
+
+test("unauthorized delete store", async () =>{
+  const loginRes = await login(testUser);
+  const deleteStoreRes = await request(app).delete(`/api/franchise/${franchiseToDeleteId}/store/${storeToDeleteId}`).set('Authorization', `Bearer ${loginRes.body.token}`);
+  expect(deleteStoreRes.status).toBe(403);
+  expect(deleteStoreRes.body.message).toBe('unable to delete a store');
+  expect(await logout(loginRes.body.token)).toBe("logout successful")
 });
 
 test("delete store", async () =>{
-  const deleteStoreRes = await request(app).delete(`/api/franchise/${franchiseToDeleteId}/store/${storeToDeleteId}`).set('Authorization', `Bearer ${adminToken}`);
+  const loginRes = await login(admin);
+  const deleteStoreRes = await request(app).delete(`/api/franchise/${franchiseToDeleteId}/store/${storeToDeleteId}`).set('Authorization', `Bearer ${loginRes.body.token}`);
   expect(deleteStoreRes.status).toBe(200);
   expect(deleteStoreRes.body.message).toBe('store deleted');
+  expect(await logout(adminToken)).toBe("logout successful")
+});
+
+test("unauthorized delete franchise", async () =>{
+  const loginRes = await login(testUser);
+  const deleteFranchiseRes = await request(app).delete(`/api/franchise/${franchiseToDeleteId}`).set('Authorization', `Bearer ${loginRes.body.token}`);
+  expect(deleteFranchiseRes.status).toBe(403);
+  expect(deleteFranchiseRes.body.message).toBe('unable to delete a franchise');
+  expect(await logout(loginRes.body.token)).toBe("logout successful"); 
 });
 
 test("delete franchise", async () =>{
-  const deleteFranchiseRes = await request(app).delete(`/api/franchise/${franchiseToDeleteId}`).set('Authorization', `Bearer ${adminToken}`);
+  const loginRes = await login(admin);
+  const deleteFranchiseRes = await request(app).delete(`/api/franchise/${franchiseToDeleteId}`).set('Authorization', `Bearer ${loginRes.body.token}`);
   expect(deleteFranchiseRes.status).toBe(200);
   expect(deleteFranchiseRes.body.message).toBe('franchise deleted');
   expect(await logout(adminToken)).toBe("logout successful"); 
