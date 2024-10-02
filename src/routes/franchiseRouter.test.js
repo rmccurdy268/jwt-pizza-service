@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../service');
 
-let admin, adminToken, testUser, testUserToken, adminId, franchiseToDeleteId, storeToDeleteId;
+let admin, adminToken, testUser, adminId, franchiseToDeleteId, storeToDeleteId;
 const { Role, DB } = require('../database/database.js');
 
 
@@ -32,21 +32,11 @@ async function logout(token){
 }
 
 async function login(user){
-  let loginRes;
-  try{
-    loginRes = await request(app).put('/api/auth').send({name: user.name, email: user.email, password: user.password});
-    if (user.roles[0].role == Role.Admin){
-      adminToken = loginRes.body.token;
-    }
-    else{
-      testUserToken = loginRes.body.token;
-    }
+  const loginRes = await request(app).put('/api/auth').send({name: user.name, email: user.email, password: user.password});
+  if (user.roles[0].role == Role.Admin){
+    adminToken = loginRes.body.token;
+  }
     return loginRes;
-  }
-  catch (error){
-    console.log(error);
-    throw new Error("login didnt work");
-  }
 }
 
 function randomFranchiseName(){
