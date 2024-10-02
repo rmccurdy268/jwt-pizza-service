@@ -33,10 +33,7 @@ async function logout(token){
 
 async function login(user){
   const loginRes = await request(app).put('/api/auth').send({name: user.name, email: user.email, password: user.password});
-  if (user.roles[0].role == Role.Admin){
-    adminToken = loginRes.body.token;
-  }
-    return loginRes;
+  return loginRes;
 }
 
 beforeAll(async () => {
