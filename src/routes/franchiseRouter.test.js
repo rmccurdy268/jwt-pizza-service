@@ -148,13 +148,16 @@ test("delete franchise", async () =>{
 
 
 
-afterAll(async () => {
+/*afterAll(async () => {
   const connection = await DB.getConnection();
   try{
-    //await DB.query(connection, "DROP DATABASE testpizza");
+    await connection.query(`USE ${config.db.connection.database}`);
+    await DB.query(connection, "DROP TABLE store");
+    await DB.query(connection, "DROP TABLE franchise");
     console.log("Destroying database")
   }
   finally{
     connection.end();
   }
 });
+*/
