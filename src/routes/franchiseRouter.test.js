@@ -6,13 +6,13 @@ const { Role, DB } = require('../database/database.js');
 
 
 async function createTestUser() {
-  let user = { password: 'testerPassword', roles: [{ role: Role.Diner }] }
+  let user = { password: 'otherSecretPassword', roles: [{ role: Role.Diner }] }
   user.name = Math.random().toString(36).substring(2, 12);
   user.email = user.name + '@tester.com';
 
   await DB.addUser(user);
 
-  user.password = 'toomanysecrets';
+  user.password = 'otherSecretPassword';
   return user;
 }
 async function createAdminUser() {
@@ -30,6 +30,12 @@ async function login(user){
   let loginRes;
   try{
     loginRes = await request(app).put('/api/auth').send({name: user.name, email: user.email, password: user.password});
+    if (user.roles[0].role == Role.Admin){
+      adminToken = loginRes.body.token;
+    }
+    else{
+      testUserToken = loginRes.body.token;
+    }
     return loginRes;
   }
   catch (error){
@@ -42,6 +48,15 @@ beforeAll(async () => {
   admin = await createAdminUser();
   testUser = await createTestUser();
 });
+test("unauthorized franchise", async () =>{
+  loginRes = await login(testUser);
+  testUserToken = loginRes.body.token;
+  const createRes = await request(app).post('/api/franchise/').set('Authorization', `Bearer ${testUserToken}`).send({"name": "newandimprovedpizzapocket", "admins": [{"email": testUser.email}]})
+  expect(createRes.status).toBe(403);
+  expect(createRes.body.message).toBe("unable to create a franchise");
+  const logout = await request(app).delete('/api/auth').set('Authorization', `Bearer ${testUserToken}`);
+  expect(logout.body.message).toBe("logout successful");
+});
 
 test("create franchise test", async () =>{
   const loginRes = await login(admin);
@@ -53,17 +68,6 @@ test("create franchise test", async () =>{
   const logout = await request(app).delete('/api/auth').set('Authorization', `Bearer ${adminToken}`);
   expect(logout.body.message).toBe("logout successful");
 });
-
-//ASK TA'S ABOUT ME I AM GETTING A 401 INSTEAD OF A 403 look at franRouter ln 82
-/*
-test("unauthorized franchise", async () =>{
-  loginRes = await login(testUser);
-  testUserToken = loginRes.body.token;
-  const createRes = await request(app).post('/api/franchise/').set('Authorization', `Bearer ${testUserToken}`).send({"name": "newandimprovedpizzapocket", "admins": [{"email": testUser.email}]})
-  expect(createRes.status).toBe(403);
-  expect(createRes.message).toBe("unable to create a franchise");
-});
-*/
 
 test("get franchises", async () =>{
   const franchisesRes = await request(app).get('/api/franchise/');
