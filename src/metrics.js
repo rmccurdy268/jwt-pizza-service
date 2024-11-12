@@ -29,27 +29,25 @@ class Metrics{
     this.sendMetricsPeriodically(10000);
   }
 
-  inc(req){
+  requestTracker(req){
     this.totalRequests++;
-    switch(req){
-      case "POST":
+    switch(req.method){
+      case 'POST':
         this.postRequests++;
         break;
-      case "DELETE":
+      case 'DELETE':
         this.deleteRequests++;
         break;
-      case "PUT":
+      case 'PUT':
         this.putRequests++;
         break;
-      case "GET":
+      case 'GET':
+        this.getRequests++;
+        break;
+      default:
         this.getRequests++;
         break;
     }
-  }
-
-  requestTracker(req, res, next){
-    this.inc(req.method);
-    next();
   }
 
   httpMetrics(buffer){
@@ -60,12 +58,18 @@ class Metrics{
     buffer.addMetric('request', 'http', 'putRequests', this.putRequests);
   }
 
+  internalMetrics(buffer){
+    buffer.addMetric('request', 'internal', 'cpuPercentage', this.getCpuUsagePercentage())
+    buffer.addMetric('request', 'internal', 'memoryUsage', this.getMemoryUsagePercentage())
+  }
+
   sendMetricsPeriodically(period) {
     const timer = setInterval(() => {
-      const buf = new MetricBuilder();
-      this.httpMetrics(buf);
+      const buffer = new MetricBuilder();
+      this.httpMetrics(buffer);
+      this.internalMetrics(buffer)
 
-      const metrics = buf.getBatch();
+      const metrics = buffer.getBatch();
       this.sendBatch(metrics);
     }, period);
     timer.unref();
@@ -74,7 +78,7 @@ class Metrics{
   sendBatch(metrics){
     for(let i = 0; i < metrics.length; i++){
       try{
-        this.sendMetricToGrafana(metrics[i]);        
+        Metrics.sendMetricToGrafana(metrics[i]);        
       }
       catch(error){
         console.log('Error sending metrics', error);
@@ -82,7 +86,7 @@ class Metrics{
     }
   }
 
-  sendMetricToGrafana(metric) {  
+  static sendMetricToGrafana(metric) {  
     fetch(`${config.metrics.url}`, {
       method: 'post',
       body: metric,
@@ -99,6 +103,7 @@ class Metrics{
         console.error('Error pushing metrics:', error);
       });
   }
+  
   getCpuUsagePercentage() {
     const cpuUsage = os.loadavg()[0] / os.cpus().length;
     return cpuUsage.toFixed(2) * 100;
@@ -113,5 +118,4 @@ class Metrics{
   }
 }
 
-const metrics = new Metrics();
-module.exports = metrics;
+module.exports = Metrics;
