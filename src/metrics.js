@@ -40,8 +40,10 @@ class Metrics{
         break;
       case "PUT":
         this.putRequests++;
+        break;
       case "GET":
         this.getRequests++;
+        break;
     }
   }
 
