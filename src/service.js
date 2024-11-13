@@ -23,6 +23,22 @@ app.use((req,res,next)=>{
   next();
 });
 
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  
+  const originalSend = res.send;
+  res.send = function (body) {
+    const duration = Date.now() - start; 
+    metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${'http'} ${'serviceLatency'}=${duration}`);
+
+    res.send = originalSend; 
+    return res.send(body);
+  };
+
+  next();
+});
+
 const apiRouter = express.Router();
 app.use('/api', apiRouter);
 apiRouter.use('/auth', authRouter);

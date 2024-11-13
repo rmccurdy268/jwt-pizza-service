@@ -79,7 +79,7 @@ orderRouter.post(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const pizzaCreationStart = Math.floor(Date.now()) * 1000000;
+    const pizzaCreationStart = Date.now();
     const orderReq = req.body;
     metrics.totalOrders++;
     const order = await DB.addDinerOrder(req.user, orderReq);
@@ -94,7 +94,7 @@ orderRouter.post(
       for (let i = 0; i < req.body.items.length; i++){
         metrics.revenue += req.body.items[i].price;
       }
-      metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${'pizzaCreation'} ${'pizzaCreationTime'}=${((Math.floor(Date.now()) * 1000000)-pizzaCreationStart)/1000000}`)
+      metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${'pizzaCreation'} ${'pizzaCreationTime'}=${Date.now()-pizzaCreationStart}`)
       res.send({ order, jwt: j.jwt, reportUrl: j.reportUrl });
     } else {
       metrics.failedOrders++;
