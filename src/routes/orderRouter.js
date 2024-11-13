@@ -3,6 +3,7 @@ const config = require('../config.js');
 const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
 const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
+const metrics = require('../metrics.js');
 
 
 const orderRouter = express.Router();
@@ -78,7 +79,9 @@ orderRouter.post(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    const pizzaCreationStart = Math.floor(Date.now()) * 1000000;
     const orderReq = req.body;
+    metrics.totalOrders++;
     const order = await DB.addDinerOrder(req.user, orderReq);
     const r = await fetch(`${config.factory.url}/api/order`, {
       method: 'POST',
@@ -87,8 +90,14 @@ orderRouter.post(
     });
     const j = await r.json();
     if (r.ok) {
+      metrics.successfulOrders++;
+      for (let i = 0; i < req.body.items.length; i++){
+        metrics.revenue += req.body.items[i].price;
+      }
+      metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${'pizzaCreation'} ${'pizzaCreationTime'}=${(Math.floor(Date.now()) * 1000000)-pizzaCreationStart}`)
       res.send({ order, jwt: j.jwt, reportUrl: j.reportUrl });
     } else {
+      metrics.failedOrders++;
       res.status(500).send({ message: 'Failed to fulfill order at factory', reportUrl: j.reportUrl });
     }
   })

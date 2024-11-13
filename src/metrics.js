@@ -31,6 +31,12 @@ class Metrics{
     this.authSuccess = 0;
     this.authFailures = 0;
 
+    this.totalOrders = 0; 
+    this.successfulOrders = 0;
+    this.failedOrders = 0;
+
+    this.revenue = 0;
+
     this.sendMetricsPeriodically(10000);
   }
 
@@ -77,13 +83,20 @@ class Metrics{
     buffer.addMetric('request', 'internal', 'memoryUsage', this.getMemoryUsagePercentage())
   }
 
+  pizzaMetrics(buffer){
+    buffer.addMetric('request', 'pizza', 'pizzasSold', this.successfulOrders)
+    buffer.addMetric('request', 'internal', 'pizzaFailures', this.failedOrders)
+    buffer.addMetric('request', 'internal', 'revenue', this.revenue)
+  }
+
   sendMetricsPeriodically(period) {
     const timer = setInterval(() => {
       const buffer = new MetricBuilder();
       this.httpMetrics(buffer);
       this.internalMetrics(buffer);
       this.activeUserMetrics(buffer);
-      this.authMetrics(buffer)
+      this.authMetrics(buffer);
+      this.pizzaMetrics(buffer);
 
       const metrics = buffer.getBatch();
       this.sendBatch(metrics);
@@ -94,7 +107,7 @@ class Metrics{
   sendBatch(metrics){
     for(let i = 0; i < metrics.length; i++){
       try{
-        Metrics.sendMetricToGrafana(metrics[i]);        
+        this.sendMetricToGrafana(metrics[i]);        
       }
       catch(error){
         console.log('Error sending metrics', error);
@@ -102,7 +115,7 @@ class Metrics{
     }
   }
 
-  static sendMetricToGrafana(metric) {  
+  sendMetricToGrafana(metric) {  
     fetch(`${config.metrics.url}`, {
       method: 'post',
       body: metric,
