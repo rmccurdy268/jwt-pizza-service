@@ -94,7 +94,7 @@ orderRouter.post(
       for (let i = 0; i < req.body.items.length; i++){
         metrics.revenue += req.body.items[i].price;
       }
-      metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${'pizzaCreation'} ${'pizzaCreationTime'}=${(Math.floor(Date.now()) * 1000000)-pizzaCreationStart}`)
+      metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${'pizzaCreation'} ${'pizzaCreationTime'}=${((Math.floor(Date.now()) * 1000000)-pizzaCreationStart)/1000000}`)
       res.send({ order, jwt: j.jwt, reportUrl: j.reportUrl });
     } else {
       metrics.failedOrders++;

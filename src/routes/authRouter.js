@@ -87,11 +87,17 @@ authRouter.put(
   '/',
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
-    const user = await DB.getUser(email, password);
-    const auth = await setAuth(user);
-    metrics.authSuccess++;
-    res.json({ user: user, token: auth });
-  }),
+    try{
+      const user = await DB.getUser(email, password);
+      const auth = await setAuth(user);
+      metrics.authSuccess++;
+      res.json({ user: user, token: auth });
+    }
+    catch(error){
+      metrics.authFailures++;
+      res.status(404).json({message: 'account not found'})
+    }
+  })
 );
 
 // logout
