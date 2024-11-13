@@ -4,8 +4,7 @@ const orderRouter = require('./routes/orderRouter.js');
 const franchiseRouter = require('./routes/franchiseRouter.js');
 const version = require('./version.json');
 const config = require('./config.js');
-const Metric = require('./metrics.js');
-let myMetrics = new Metric();
+const metrics = require('./metrics.js');
 
 
 const app = express();
@@ -20,7 +19,7 @@ app.use((req, res, next) => {
 });
 
 app.use((req,res,next)=>{
-  myMetrics.requestTracker(req)
+  metrics.requestTracker(req)
   next();
 });
 

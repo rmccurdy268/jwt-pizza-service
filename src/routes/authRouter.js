@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const config = require('../config.js');
 const { asyncHandler } = require('../endpointHelper.js');
 const { DB, Role } = require('../database/database.js');
+const metrics = require('../metrics.js')
 
 const authRouter = express.Router();
 
@@ -58,10 +59,13 @@ async function setAuthUser(req, res, next) {
 // Authenticate token
 authRouter.authenticateToken = (req, res, next) => {
   if (!req.user) {
+    metrics.authFailures++;
     return res.status(401).send({ message: 'unauthorized' });
   }
+  metrics.authSuccess++;
   next();
 };
+
 
 // register
 authRouter.post(
@@ -74,7 +78,8 @@ authRouter.post(
     const user = await DB.addUser({ name, email, password, roles: [{ role: Role.Diner }] });
     const auth = await setAuth(user);
     res.json({ user: user, token: auth });
-  })
+    metrics.authSuccess++;
+  }),
 );
 
 // login
@@ -84,8 +89,9 @@ authRouter.put(
     const { email, password } = req.body;
     const user = await DB.getUser(email, password);
     const auth = await setAuth(user);
+    metrics.authSuccess++;
     res.json({ user: user, token: auth });
-  })
+  }),
 );
 
 // logout
@@ -93,9 +99,10 @@ authRouter.delete(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    metrics.usersLoggedIn--;
     clearAuth(req);
     res.json({ message: 'logout successful' });
-  })
+  }),
 );
 
 // updateUser
@@ -107,10 +114,12 @@ authRouter.put(
     const userId = Number(req.params.userId);
     const user = req.user;
     if (user.id !== userId && !user.isRole(Role.Admin)) {
+      metrics.authFailures++;
       return res.status(403).json({ message: 'unauthorized' });
     }
 
     const updatedUser = await DB.updateUser(userId, email, password);
+    metrics.authSuccess++;
     res.json(updatedUser);
   })
 );
@@ -118,6 +127,7 @@ authRouter.put(
 async function setAuth(user) {
   const token = jwt.sign(user, config.jwtSecret);
   await DB.loginUser(user.id, token);
+  metrics.usersLoggedIn++;
   return token;
 }
 

@@ -26,6 +26,11 @@ class Metrics{
     this.getRequests = 0;
     this.putRequests = 0;
 
+    this.usersLoggedIn = 0;
+
+    this.authSuccess = 0;
+    this.authFailures = 0;
+
     this.sendMetricsPeriodically(10000);
   }
 
@@ -58,6 +63,15 @@ class Metrics{
     buffer.addMetric('request', 'http', 'putRequests', this.putRequests);
   }
 
+  activeUserMetrics(buffer){
+    buffer.addMetric('request', 'active', 'activeUsers', this.usersLoggedIn);
+  }
+
+  authMetrics(buffer){
+    buffer.addMetric('request', 'auth', 'successes', this.authSuccess);
+    buffer.addMetric('request', 'auth', 'failures', this.authFailures);
+  }
+
   internalMetrics(buffer){
     buffer.addMetric('request', 'internal', 'cpuPercentage', this.getCpuUsagePercentage())
     buffer.addMetric('request', 'internal', 'memoryUsage', this.getMemoryUsagePercentage())
@@ -67,7 +81,9 @@ class Metrics{
     const timer = setInterval(() => {
       const buffer = new MetricBuilder();
       this.httpMetrics(buffer);
-      this.internalMetrics(buffer)
+      this.internalMetrics(buffer);
+      this.activeUserMetrics(buffer);
+      this.authMetrics(buffer)
 
       const metrics = buffer.getBatch();
       this.sendBatch(metrics);
@@ -118,4 +134,5 @@ class Metrics{
   }
 }
 
-module.exports = Metrics;
+const metrics = new Metrics();
+module.exports = metrics;
