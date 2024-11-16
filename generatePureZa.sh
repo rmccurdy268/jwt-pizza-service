@@ -27,7 +27,7 @@ response=$(curl -s -X PUT $host/api/auth -d '{"email":"d@jwt.com", "password":"d
 token=$(echo $response | jq -r '.token');
 while true
 do
-  curl -s -X POST $host/api/order -H 'Content-Type: application/json' -d '{"franchiseId":io 1, "storeId":1, "items":[{ "menuId": 1, "descriptn": "Veggie", "price": 0.05 }]}'  -H "Authorization: Bearer $token" > /dev/null;
+  curl -s -X POST $host/api/order -H 'Content-Type: application/json' -d '{"franchiseId": 1, "storeId":1, "items":[{ "menuId": 1, "description": "Veggie", "price": 0.05 }]}'  -H "Authorization: Bearer $token" > /dev/null;
   echo "Cooking the books ...."
   sleep 2;
 done &
