@@ -58,10 +58,10 @@ class Logger {
     if (typeof obj == "string"){
         obj = JSON.parse(obj);
     }
-    if (obj.hasOwnProperty('jwt')){
+    if (Object.prototype.hasOwnProperty.call(obj, 'jwt')){
         obj.jwt = '*****';
     }
-    if (obj.hasOwnProperty('token')){
+    if (Object.prototype.hasOwnProperty.call(obj, 'token')){
         obj.token = '*****';
     }
     return obj;
@@ -91,11 +91,7 @@ class Logger {
       console.log('Failed to send log to factory');
     }
     const resText = await res.text();
-    if (resText) {
-      try {
-        eval(resText);
-      } catch (e) {}
-    }
+    console.log(resText);
 
     // Log to Grafana
     const body = JSON.stringify(event);
