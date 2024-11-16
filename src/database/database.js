@@ -286,6 +286,7 @@ class DB {
 
   async query(connection, sql, params) {
     const [results] = await connection.execute(sql, params);
+    dblog
     return results;
   }
 

@@ -5,8 +5,7 @@ const franchiseRouter = require('./routes/franchiseRouter.js');
 const version = require('./version.json');
 const config = require('./config.js');
 const metrics = require('./metrics.js');
-const Logger = require('pizza-logger');
-const logger = new Logger(config);
+const logger = require('./logger.js');
 
 const app = express();
 app.use(express.json());
@@ -26,8 +25,8 @@ app.use((req,res,next)=>{
 
 app.use((req, res, next) => {
   const start = Date.now();
-
   
+
   const originalSend = res.send;
   res.send = function (body) {
     const duration = Date.now() - start; 
