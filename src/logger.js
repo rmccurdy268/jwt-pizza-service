@@ -56,7 +56,12 @@ class Logger {
 
   sanitizeRes(obj){
     if (typeof obj == "string"){
+      try {
+        // Attempt to parse the string as JSON
         obj = JSON.parse(obj);
+      } catch{
+        return obj;
+      }
     }
     if (Object.prototype.hasOwnProperty.call(obj, 'jwt')){
         obj.jwt = '*****';
