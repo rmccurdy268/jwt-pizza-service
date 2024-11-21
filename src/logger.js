@@ -63,13 +63,14 @@ class Logger {
         return obj;
       }
     }
+    const sanitizedObj = { ...obj };
     if (Object.prototype.hasOwnProperty.call(obj, 'jwt')){
-        obj.jwt = '*****';
+        sanitizedObj.jwt = '*****';
     }
     if (Object.prototype.hasOwnProperty.call(obj, 'token')){
-        obj.token = '*****';
+        sanitizedObj.token = '*****';
     }
-    return obj;
+    return sanitizedObj;
   };
 
   sanitize(logData) {
