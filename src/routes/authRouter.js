@@ -93,9 +93,9 @@ authRouter.put(
       metrics.authSuccess++;
       res.json({ user: user, token: auth });
     }
-    catch(error){
+    catch{
       metrics.authFailures++;
-      res.status(error.statusCode).json({message: 'account not found'})
+      res.status(400).json({message: 'account not found'})
     }
   })
 );
