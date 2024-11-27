@@ -30,12 +30,13 @@ app.use((req, res, next) => {
   const originalSend = res.send;
   res.send = function (body) {
     const duration = Date.now() - start; 
-    metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${'http'} ${'serviceLatency'}=${duration}`);
-
+    if (req.method == 'POST' && req.originalUrl == '/api/order'){
+      metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${'postPizza'} ${'pizzaTotalLatency'}=${duration}`);
+    }
+    metrics.sendMetricToGrafana(`${'request'},source=${config.metrics.source},method=${req.method} ${'serviceLatency'}=${duration}`);
     res.send = originalSend; 
     return res.send(body);
   };
-
   next();
 });
 
