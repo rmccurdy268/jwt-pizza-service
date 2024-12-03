@@ -34,7 +34,7 @@ class Metrics{
     this.totalOrders = 0; 
     this.successfulOrders = 0;
     this.failedOrders = 0;
-
+    
     this.revenue = 0;
 
     this.sendMetricsPeriodically(10000);

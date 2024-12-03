@@ -7,12 +7,17 @@ class Logger {
 
   httpLogger = (req, res, next) => {
     let send = res.send;
+    let addr = 'null';
+    if (req.headers['x-forwarded-for'] != undefined){
+      addr = req.headers['x-forwarded-for']
+    }
     res.send = (resBody) => {
       const logData = {
         authorized: !!req.headers.authorization,
         path: req.path,
         method: req.method,
         statusCode: res.statusCode,
+        ip: addr,
         reqBody: this.sanitize(JSON.stringify(req.body)),
         resBody: JSON.stringify(this.sanitizeRes(resBody)),
       };

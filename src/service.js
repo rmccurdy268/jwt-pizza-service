@@ -8,6 +8,7 @@ const metrics = require('./metrics.js');
 const logger = require('./logger.js');
 
 const app = express();
+const banList = [];
 app.use(express.json());
 app.use(setAuthUser);
 app.use((req, res, next) => {
@@ -41,6 +42,19 @@ app.use((req, res, next) => {
 });
 
 app.use(logger.httpLogger);
+
+app.use((req, res, next)=>{
+  let addr = 'null';
+  if (req.headers['x-forwarded-for'] != undefined){
+    addr = req.headers['x-forwarded-for']
+  }
+  if (banList.includes(addr)){
+    return res.status(403).json({ message: 'Forbidden: Your IP is blocked.' });
+  }
+  else{
+    next();
+  }
+});
 
 const apiRouter = express.Router();
 app.use('/api', apiRouter);
