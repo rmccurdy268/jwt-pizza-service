@@ -8,7 +8,7 @@ const metrics = require('./metrics.js');
 const logger = require('./logger.js');
 
 const app = express();
-const banList = [];
+const banList = ['136.36.107.83'];
 app.use(express.json());
 app.use(setAuthUser);
 app.use((req, res, next) => {
